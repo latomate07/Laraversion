@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
 use Laraversion\Laraversion\Enums\VersionEventType;
 use Laraversion\Laraversion\Models\VersionHistory;
+use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 trait Versionable
 {
@@ -26,7 +28,7 @@ trait Versionable
             $model->recordVersion(VersionEventType::DELETED);
         });
 
-        if (in_array(SoftDeletes::class, class_uses_recursive(get_class($model)))) {
+        if (in_array(SoftDeletes::class, class_uses_recursive(static::class))) {
             static::restored(function (Model $model) {
                 $model->recordVersion(VersionEventType::RESTORED);
             });
@@ -64,8 +66,9 @@ trait Versionable
 
         $versionData = $this->getVersionData($eventType, $commitId);
 
-        $this->versionHistory()->create($versionData);
-        $this->updateCurrentVersion($versionData);
+        $this->withoutEvents(function () use ($versionData) {
+            $this->versionHistory()->create($versionData);
+        });
     }
 
     /**
@@ -101,18 +104,6 @@ trait Versionable
     }
 
     /**
-     * Update the current version of the model.
-     *
-     * @param array $versionData
-     */
-    protected function updateCurrentVersion(array $versionData)
-    {
-        $this->update([
-            'current_version' => $versionData['commit_id'],
-        ]);
-    }
-
-    /**
      * Get the version data for the model.
      *
      * @param VersionEventType $eventType
@@ -128,5 +119,38 @@ trait Versionable
             'event_type' => $eventType->value,
             'data' => json_encode($data),
         ];
+    }
+
+    /**
+     * Revert the model to its last modified version.
+     *
+     * @throws \InvalidArgumentException If no version history exists.
+     */
+    public function resetToLastVersion(): void
+    {
+        $latestVersion = $this->versionHistory()->latest()->first();
+
+        if (!$latestVersion) {
+            throw new \InvalidArgumentException("No version history exists for this model.");
+        }
+
+        $this->revertToVersion($latestVersion->commit_id);
+    }
+
+    /**
+     * Revert the model to the version at a specific date.
+     *
+     * @param Carbon $date The date of the version to revert to.
+     * @throws \InvalidArgumentException If no version is found at the specified date.
+     */
+    public function resetToVersionAtDate(Carbon $date): void
+    {
+        $version = $this->versionHistory()->where('created_at', $date)->first();
+
+        if (!$version) {
+            throw new \InvalidArgumentException("No version found at date '$date'.");
+        }
+
+        $this->revertToVersion($version->commit_id);
     }
 }

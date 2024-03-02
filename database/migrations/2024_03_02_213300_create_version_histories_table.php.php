@@ -13,7 +13,6 @@ return new class extends Migration
             $table->id();
             $table->morphs('versionable');
             $table->uuid('commit_id')->unique();
-            $table->uuid('current_version')->nullable();
             $table->enum('event_type', [
                 'created',
                 'updated',
