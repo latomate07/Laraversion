@@ -4,7 +4,7 @@ namespace Laraversion\Laraversion\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
-use App\Models\VersionHistory;
+use Laraversion\Laraversion\Models\VersionHistory;
 
 class LaraversionCommand extends Command
 {
