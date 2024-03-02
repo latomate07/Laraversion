@@ -1,4 +1,5 @@
-<?php
+<?php 
+
 namespace Laraversion\Laraversion;
 
 use Illuminate\Support\ServiceProvider;
@@ -11,6 +12,10 @@ class LaraversionServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__.'/../config/laraversion.php' => config_path('laraversion.php'),
         ], 'config');
+
+        $this->publishes([
+            __DIR__.'/../database/migrations' => database_path('migrations'),
+        ], 'migrations');
 
         if ($this->app->runningInConsole()) {
             $this->commands([
