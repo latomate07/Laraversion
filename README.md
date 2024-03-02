@@ -16,11 +16,12 @@ Laraversion is a Laravel package that simplifies version management for your Elo
 ```
 composer require laraversion/laraversion
 ```
-1. Publish the package configuration:
+2. Publish the package configuration & migration file:
 ```css
 php artisan vendor:publish --provider="Laraversion\Laraversion\LaraversionServiceProvider" --tag=config
+php artisan vendor:publish --provider="Laraversion\Laraversion\LaraversionServiceProvider" --tag=migrations
 ```
-1. Run the migrations:
+3. Run the migrations:
 ```
 php artisan migrate
 ```
@@ -35,9 +36,33 @@ class YourModel extends Model
     use Versionable;
 }
 ```
+### Available Methods
+
+When using the Versionable trait in your model, the following methods are available:
+
+1. `versionHistory()`: Get the version history for a given model.
+2. `recordVersion(VersionEventType $eventType)`: Record a new version for the model.
+3. `revertToVersion(string $commitId)`: Revert the model to a specific version.
+4. `resetToLastVersion()`: Revert the model to its last modified version.
+5. `resetToVersionAtDate(Carbon $date)`: Revert the model to the version at a specific date. (ex: User::find(1)->resetToVersionAtDate(Carbon::yesterday()))
+
+## Use Cases
+
+1. **Track changes in user profiles:** Use Laraversion to track changes made to user profiles in your application, allowing you to easily revert to previous versions if necessary.
+2. **Audit content updates:** Use Laraversion to audit content updates in a CMS, providing a history of changes and the ability to restore previous versions.
+3. **Monitor product updates:** Use Laraversion to monitor product updates in an e-commerce platform, ensuring you can revert to previous versions if an update causes issues.
+
 ## Commands
 
-Laraversion provides an Artisan command to restore a specific version of a model:
+Laraversion provides an Artisan command to restore a specific version of a model.
+
+1. `List all versions of your app models:`
+```javascript
+php artisan laraversion
+```
+This will list out all the versions of your application models.
+
+2. `Restore a specific version of a model:`
 ```javascript
 php artisan laraversion:restore {model} {commit_id}
 ```
@@ -49,12 +74,8 @@ You can configure the maximum number of versions to retain by changing the `max_
 
 ## Contribution
 
-Contributions are welcome! If you'd like to contribute to Laraversion, please refer to our contribution guide.
+Contributions are welcome!
 
 ## License
 
 Laraversion is open source and released under the MIT license.
-
----
-
-Feel free to customize this README to fit your package's specific needs and add additional sections as necessary.
