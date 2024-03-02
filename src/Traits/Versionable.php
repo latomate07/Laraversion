@@ -26,13 +26,15 @@ trait Versionable
             $model->recordVersion(VersionEventType::DELETED);
         });
 
-        static::restored(function (Model $model) {
-            $model->recordVersion(VersionEventType::RESTORED);
-        });
+        if (in_array(SoftDeletes::class, class_uses_recursive(get_class($model)))) {
+            static::restored(function (Model $model) {
+                $model->recordVersion(VersionEventType::RESTORED);
+            });
 
-        static::forceDeleted(function (Model $model) {
-            $model->recordVersion(VersionEventType::FORCE_DELETED);
-        });
+            static::forceDeleted(function (Model $model) {
+                $model->recordVersion(VersionEventType::FORCE_DELETED);
+            });
+        }
     }
 
     /**
