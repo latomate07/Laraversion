@@ -122,13 +122,38 @@ trait Versionable
     }
 
     /**
+     * Revert the model to a specific version.
+     *
+     * @param string $commitId The commit ID of the version to revert to.
+     * @throws \InvalidArgumentException If the specified version is not found.
+     */
+    public function revertToVersion(string $commitId): void
+    {
+        $version = $this->versionHistory()->where('commit_id', $commitId)->first();
+
+        if (!$version) {
+            throw new \InvalidArgumentException("No version found with commit ID '$commitId'.");
+        }
+
+        // Get the data from the version
+        $versionData = json_decode($version->data, true);
+
+        // Update the model's attributes with the version data
+        $this->fill($versionData);
+        $this->save();
+    }
+
+    /**
      * Revert the model to its last modified version.
      *
      * @throws \InvalidArgumentException If no version history exists.
      */
     public function resetToLastVersion(): void
     {
-        $latestVersion = $this->versionHistory()->latest()->first();
+        $latestVersion = $this->versionHistory()
+            ->where('created_at', '<', $this->updated_at)
+            ->latest()
+            ->first();
 
         if (!$latestVersion) {
             throw new \InvalidArgumentException("No version history exists for this model.");
