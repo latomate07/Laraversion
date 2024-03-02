@@ -4,6 +4,7 @@ namespace Laraversion\Laraversion;
 
 use Illuminate\Support\ServiceProvider;
 use Laraversion\Laraversion\Commands\LaraversionCommand;
+use Laraversion\Laraversion\Commands\ListVersionsCommand;
 
 class LaraversionServiceProvider extends ServiceProvider
 {
@@ -20,6 +21,7 @@ class LaraversionServiceProvider extends ServiceProvider
         if ($this->app->runningInConsole()) {
             $this->commands([
                 LaraversionCommand::class,
+                ListVersionsCommand::class,
             ]);
         }
     }

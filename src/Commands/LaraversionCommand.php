@@ -8,7 +8,7 @@ use Laraversion\Laraversion\Models\VersionHistory;
 
 class LaraversionCommand extends Command
 {
-    public $signature = 'laraversion restore {model} {commit_id}';
+    public $signature = 'laraversion:restore {model} {commit_id}';
 
     public $description = 'Restore a specific version of a model';
 
