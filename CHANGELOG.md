@@ -5,6 +5,7 @@
 ### Added
 
 - Events for version creation, pruning, and restoration.
+- Create laraversion:compare command to display differences between two model versions
 
 ### Fixed
 

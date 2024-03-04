@@ -3,6 +3,7 @@
 namespace Laraversion\Laraversion;
 
 use Illuminate\Support\ServiceProvider;
+use Laraversion\Laraversion\Commands\CompareVersionsCommand;
 use Laraversion\Laraversion\Commands\LaraversionCommand;
 use Laraversion\Laraversion\Commands\ListVersionsCommand;
 
@@ -22,6 +23,7 @@ class LaraversionServiceProvider extends ServiceProvider
             $this->commands([
                 LaraversionCommand::class,
                 ListVersionsCommand::class,
+                CompareVersionsCommand::class,
             ]);
         }
     }

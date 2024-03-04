@@ -133,19 +133,39 @@ Use Cases
 Commands
 --------
 
-Laraversion provides an Artisan command to restore a specific version of a model.
+Laraversion provides Artisan commands to manage the versions of your models.
 
-1. `List all versions of your app models:`
+### List all versions of your app models:
+
 ```javascript
-php artisan laraversion
+php artisan laraversion list
 ```
-This will list out all the versions of your application models.
+This command lists the latest versions of all models in your application.
 
-2. `Restore a specific version of a model:`
+### Restore a specific version of a model:
+
 ```javascript
 php artisan laraversion:restore {model} {commit_id}
 ```
 Replace `{model}` with the model class name and `{commit_id}` with the UUID of the version you want to restore.
+
+### Compare two versions of a model:
+
+```javascript
+php artisan laraversion:compare {model} {commit_id1} {commit_id2}
+```
+Replace `{model}` with the model class name and `{commit_id1}` and `{commit_id2}` with the UUIDs of the versions you want to compare. This command will display a table showing the differences between the two versions.
+
+Example:
+
+```javascript
+php artisan laraversion:compare Post 123e4567-e89b-12d3-a456-426614174000 7890abcd-efgh-3456-ijkl-mnopqrstuvwx
+```
+This command will compare the versions of the `Post` model with the UUIDs `123e4567-e89b-12d3-a456-426614174000` and `7890abcd-efgh-3456-ijkl-mnopqrstuvwx`, and display a table showing the differences between the two versions.
+
+Note: Make sure to replace `Post`, `123e4567-e89b-12d3-a456-426614174000`, and `7890abcd-efgh-3456-ijkl-mnopqrstuvwx` with the actual model class name and version UUIDs you want to compare.
+
+You can find the UUIDs of the available versions using the `php artisan laraversion` command.
 
 Configuration
 -------------
