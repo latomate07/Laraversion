@@ -6,6 +6,9 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
 use Laraversion\Laraversion\Enums\VersionEventType;
 use Laraversion\Laraversion\Models\VersionHistory;
+use Laraversion\Laraversion\Events\VersionCreatedEvent;
+use Laraversion\Laraversion\Events\VersionPrunedEvent;
+use Laraversion\Laraversion\Events\VersionRestoredEvent;
 use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
 
@@ -31,6 +34,7 @@ trait Versionable
         if (in_array(SoftDeletes::class, class_uses_recursive(static::class))) {
             static::restored(function (Model $model) {
                 $model->recordVersion(VersionEventType::RESTORED);
+                event(new VersionRestoredEvent($model));
             });
 
             static::forceDeleted(function (Model $model) {
@@ -67,7 +71,8 @@ trait Versionable
         $versionData = $this->getVersionData($eventType, $commitId);
 
         $this->withoutEvents(function () use ($versionData) {
-            $this->versionHistory()->create($versionData);
+            $version = $this->versionHistory()->create($versionData);
+            event(new VersionCreatedEvent($version));
         });
     }
 
@@ -82,6 +87,7 @@ trait Versionable
 
         if ($this->versionHistory()->count() >= $maxVersions) {
             $oldestVersion = $this->versionHistory()->oldest()->first();
+            event(new VersionPrunedEvent($oldestVersion));
             $oldestVersion->delete();
         }
     }

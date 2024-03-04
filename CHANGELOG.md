@@ -1,16 +1,10 @@
 # Changelog
 
-## [1.0.0](https://github.com/latomate07/laraversion/releases/tag/v1.0.0) - 2024-03-03
+## [1.0.1](https://github.com/latomate07/laraversion/releases/tag/v1.0.1) - 2024-03-04
 
 ### Added
 
-- Initial release of Laraversion package.
-- Automatic version tracking for Eloquent models.
-- Support for Laravel model events (created, updated, deleted, restored, forceDeleted).
-- Storage of version data in a dedicated table with unique UUIDs.
-- Easy configuration of the maximum number of versions to retain.
-- Artisan command to restore a specific version of a model.
-- Artisan command to list all versions of a model or all models.
+- Events for version creation, pruning, and restoration.
 
 ### Fixed
 
