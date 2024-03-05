@@ -2,7 +2,8 @@
 
 namespace Laraversion\Laraversion;
 
-use Illuminate\Support\Facades\App;
+use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Laraversion\Laraversion\Models\VersionHistory;
 
 class Laraversion
@@ -10,30 +11,27 @@ class Laraversion
     /**
      * Get the version history for a given model.
      *
-     * @param string $modelClass The class name of the model.
+     * @param Model $model The model instance.
      *
-     * @return array The version history as an array.
+     * @return Collection The version history as a collection.
      */
-    public static function getVersionHistory(string $modelClass): array
+    public static function getVersionHistory(Model $model): Collection
     {
-        $model = App::make($modelClass);
-
-        return $model->versionHistory()->get()->toArray();
+        return $model->versionHistory()->get();
     }
 
     /**
      * Restore a previous version of a given model.
      *
-     * @param string $modelClass The class name of the model.
+     * @param Model $model The model instance.
      * @param string $commitId The commit ID of the version to restore.
      *
      * @return void
      *
      * @throws \RuntimeException If the version is not found.
      */
-    public static function restoreVersion(string $modelClass, string $commitId): void
+    public static function restoreVersion(Model $model, string $commitId): void
     {
-        $model = App::make($modelClass);
         $version = $model->versionHistory()->where('commit_id', $commitId)->first();
 
         if (!$version) {
@@ -47,43 +45,35 @@ class Laraversion
     /**
      * Get the latest version of a given model.
      *
-     * @param string $modelClass The class name of the model.
+     * @param Model $model The model instance.
      *
      * @return VersionHistory|null The latest version or null if not found.
      */
-    public static function getLatestVersion(string $modelClass): ?VersionHistory
+    public static function getLatestVersion(Model $model): ?VersionHistory
     {
-        $model = App::make($modelClass);
-
         return $model->versionHistory()->latest()->first();
     }
 
     /**
      * Get all versions of a given model.
      *
-     * @param string $modelClass The class name of the model.
-     *
-     * @return \Illuminate\Database\Eloquent\Collection|VersionHistory[] The versions of the model.
+     * @return \Illuminate\Database\Eloquent\Collection|VersionHistory[] The versions of all models.
      */
-    public static function getAllVersions(string $modelClass): \Illuminate\Database\Eloquent\Collection
+    public static function getAllVersions(): \Illuminate\Database\Eloquent\Collection
     {
-        $model = App::make($modelClass);
-
-        return $model->versionHistory()->get();
+        return VersionHistory::all();
     }
 
     /**
      * Get a specific version of a given model.
      *
-     * @param string $modelClass The class name of the model.
+     * @param Model $model The model instance.
      * @param string $commitId The commit ID of the version.
      *
      * @return VersionHistory|null The version or null if not found.
      */
-    public static function getVersion(string $modelClass, string $commitId): ?VersionHistory
+    public static function getVersion(Model $model, string $commitId): ?VersionHistory
     {
-        $model = App::make($modelClass);
-
         return $model->versionHistory()->where('commit_id', $commitId)->first();
     }
 

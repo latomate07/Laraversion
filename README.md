@@ -112,34 +112,32 @@ protected $listen = [
 
 ### <a name="facade-usage"></a>Facade Usage
 
-You can also use the Laraversion facade to interact with your models' versions. First, make sure to alias the facade in your `config/app.php` file:
+You can use the Laraversion facade to interact with your models' versions by importing the facade:
 ```php
-'aliases' => [
-    // ...
-    'Laraversion' => Laraversion\Laraversion\Facades\Laraversion::class,
-],
+use Laraversion\Laraversion\Facades\Laraversion;
 ```
 Then, you can use the facade's methods:
 
-1. `Laraversion::getVersionHistory($modelClass)`: Get the version history for a given model.
-2. `Laraversion::restoreVersion($modelClass, $commitId)`: Restore a previous version of a given model.
-3. `Laraversion::getLatestVersion($modelClass)`: Get the latest version of a given model.
-4. `Laraversion::getAllVersions($modelClass)`: Get all versions of a given model.
-5. `Laraversion::getVersion($modelClass, $commitId)`: Get a specific version of a given model.
+1. `Laraversion::getVersionHistory(Model $model)`: Get the version history for a given model instance.
+2. `Laraversion::restoreVersion(Model $model, string $commitId)`: Restore a previous version of a given model instance.
+3. `Laraversion::getLatestVersion(Model $model)`: Get the latest version of a given model instance.
+4. `Laraversion::getAllVersions()`: Get all versions of all models.
+5. `Laraversion::getVersion(Model $model, string $commitId)`: Get a specific version of a given model instance.
 
 <a name="examples"></a>
 Examples
 --------
 
-### Example 1: Get version history for a User model using Laraversion Facade
+### Example 1: Get version history for a User model instance using Laraversion Facade
 ```php
 use App\Models\User;
-use Laraversion;
+use Laraversion\Laraversion\Facades\Laraversion;
 
-$versionHistory = Laraversion::getVersionHistory(User::class);
+$user = User::first();
+$versionHistory = Laraversion::getVersionHistory($user); 
 ```
 
-### Example 1-Bis: Get version history for a User model instance using trait methods
+### Alternatively Get version history for a User model instance using trait methods
 
 ```php
 use App\Models\User;
@@ -148,15 +146,16 @@ $user = User::find(1);
 $versionHistory = $user->versionHistory()->get();
 ```
 
-### Example 2: Restore a previous version of a Post model using Laraversion Facade
+### Example 2: Restore a previous version of a Post model instance using Laraversion Facade
 ```php
 use App\Models\Post;
-use Laraversion;
+use Laraversion\Laraversion\Facades\Laraversion;
 
-Laraversion::restoreVersion(Post::class, '123e4567-e89b-12d3-a456-426614174000');
+$post = Post::first();
+Laraversion::restoreVersion($post, '123e4567-e89b-12d3-a456-426614174000');
 ```
 
-### Example 2-Bis: Restore a previous version of a Post model instance using trait methods
+### Alternatively Restore a previous version of a Post model instance using trait methods
 ```php
 use App\Models\Post;
 
