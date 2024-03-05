@@ -130,7 +130,7 @@ trait Versionable
     }
 
     /**
-     * Get the version data for the model.
+     * Get the version data for a specific event type and commit ID.
      *
      * @param VersionEventType $eventType
      * @param string $commitId
@@ -140,12 +140,18 @@ trait Versionable
     {
         $data = $this->getAttributes();
 
+        // Filter out untracked fields from the data.
+        if (property_exists($this, 'untrackedFields')) {
+            $data = array_diff_key($data, array_flip($this->untrackedFields));
+        }
+    
         return [
             'commit_id' => $commitId,
             'event_type' => $eventType->value,
             'data' => json_encode($data),
         ];
     }
+    
 
     /**
      * Get the events to listen for versioning.

@@ -1,8 +1,27 @@
 Laraversion
-=======
+===========
 
 Laraversion is a Laravel package that simplifies version management for your Eloquent models. It allows you to easily track and restore previous versions of your data using a Git-inspired versioning system.
 
+Table of Contents
+-----------------
+
+1. [Features](#features)
+2. [Installation](#installation)
+3. [Usage](#usage)
+    * [Using the Trait](#using-the-trait)
+    * [Available Methods](#available-methods)
+    * [Listening to Events](#listening-to-events)
+    * [Facade Usage](#facade-usage)
+    * [Examples](#examples)
+4. [Use Cases](#use-cases)
+5. [Commands](#commands)
+6. [Configuration](#configuration)
+    * [Excluding Attributes from Versioning](#excluding-attributes)
+7. [Contribution](#contribution)
+8. [License](#license)
+
+<a name="features"></a>
 Features
 --------
 
@@ -12,7 +31,9 @@ Features
 * Storage of version data in a dedicated table with unique UUIDs.
 * Easy configuration of the maximum number of versions to retain.
 * Events for version creation, pruning, and restoration.
+* Ability to specify which model attributes to exclude from versioning.
 
+<a name="installation"></a>
 Installation
 ------------
 
@@ -28,8 +49,11 @@ php artisan vendor:publish --provider="Laraversion\Laraversion\LaraversionServic
 ```
 php artisan migrate
 ```
+<a name="usage"></a>
 Usage
 -----
+
+### <a name="using-the-trait"></a>Using the Trait
 
 To use Laraversion in your models, add the `Laraversion\Laraversion\Traits\Versionable` trait:
 ```php
@@ -40,7 +64,8 @@ class YourModel extends Model
     use Versionable;
 }
 ```
-### Available Methods
+
+### <a name="available-methods"></a>Available Methods
 
 When using the Versionable trait in your model, the following methods are available:
 
@@ -50,18 +75,15 @@ When using the Versionable trait in your model, the following methods are availa
 4. `resetToLastVersion()`: Revert the model to its last modified version.
 5. `resetToVersionAtDate(Carbon $date)`: Revert the model to the version at a specific date.
 
-### Listening to Events
+### <a name="listening-to-events"></a>Listening to Events
 
 Laraversion fires events when specific actions occur, allowing you to perform additional processing or custom actions. To listen to these events, you can create event listeners and register them in your application.
 
 Here are the events fired by Laraversion:
 
-- `Laraversion\Laraversion\Events\VersionCreatedEvent`
-  - Public attribute `version` contains the `VersionHistory` model.
-- `Laraversion\Laraversion\Events\VersionPrunedEvent`
-  - Public attribute `version` contains the `VersionHistory` model that was pruned.
-- `Laraversion\Laraversion\Events\VersionRestoredEvent`
-  - Public attribute `model` contains the restored Eloquent model.
+- `VersionCreatedEvent`: Triggered when a new version is created for a model.
+- `VersionPrunedEvent`: Triggered when an old version is deleted to maintain the maximum number of versions.
+- `VersionRestoredEvent`: Triggered when a soft-deleted model is restored.
 
 To create an event listener, you can create a file like the following:
 ```php
@@ -73,22 +95,6 @@ use Laraversion\Laraversion\Events\VersionCreatedEvent;
 
 class VersionCreated
 {
-    /**
-     * Create the event listener.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        //
-    }
-
-    /**
-     * Handle the event.
-     *
-     * @param  VersionCreatedEvent  $event
-     * @return void
-     */
     public function handle(VersionCreatedEvent $event)
     {
         // Access the VersionHistory model using $event->version
@@ -97,39 +103,76 @@ class VersionCreated
 ```
 Then, you must register the events you want to act on in your `App\Providers\EventServiceProvider`'s `$listen` array:
 ```php
-/**
- * The event listener mappings for the application.
- *
- * @var array
- */
 protected $listen = [
     'Laraversion\Laraversion\Events\VersionCreatedEvent' => [
         'App\Listeners\VersionCreated',
     ],
-    'Laraversion\Laraversion\Events\VersionPrunedEvent' => [
-        'App\Listeners\VersionPruned',
-    ],
-    'Laraversion\Laraversion\Events\VersionRestoredEvent' => [
-        'App\Listeners\VersionRestored',
-    ],
-];
+    // ...
 ```
-Events
-------
 
-Laraversion provides events that you can listen to in your application:
+### <a name="facade-usage"></a>Facade Usage
 
-1. `VersionCreatedEvent`: Triggered when a new version is created for a model.
-2. `VersionPrunedEvent`: Triggered when an old version is deleted to maintain the maximum number of versions.
-3. `VersionRestoredEvent`: Triggered when a soft-deleted model is restored.
+You can also use the Laraversion facade to interact with your models' versions. First, make sure to alias the facade in your `config/app.php` file:
+```php
+'aliases' => [
+    // ...
+    'Laraversion' => Laraversion\Laraversion\Facades\Laraversion::class,
+],
+```
+Then, you can use the facade's methods:
 
+1. `Laraversion::getVersionHistory($modelClass)`: Get the version history for a given model.
+2. `Laraversion::restoreVersion($modelClass, $commitId)`: Restore a previous version of a given model.
+3. `Laraversion::getLatestVersion($modelClass)`: Get the latest version of a given model.
+4. `Laraversion::getAllVersions($modelClass)`: Get all versions of a given model.
+5. `Laraversion::getVersion($modelClass, $commitId)`: Get a specific version of a given model.
+
+<a name="examples"></a>
+Examples
+--------
+
+### Example 1: Get version history for a User model using Laraversion Facade
+```php
+use App\Models\User;
+use Laraversion;
+
+$versionHistory = Laraversion::getVersionHistory(User::class);
+```
+
+### Example 1-Bis: Get version history for a User model instance using trait methods
+
+```php
+use App\Models\User;
+
+$user = User::find(1);
+$versionHistory = $user->versionHistory()->get();
+```
+
+### Example 2: Restore a previous version of a Post model using Laraversion Facade
+```php
+use App\Models\Post;
+use Laraversion;
+
+Laraversion::restoreVersion(Post::class, '123e4567-e89b-12d3-a456-426614174000');
+```
+
+### Example 2-Bis: Restore a previous version of a Post model instance using trait methods
+```php
+use App\Models\Post;
+
+$post = Post::find(1);
+$post->revertToVersion('123e4567-e89b-12d3-a456-426614174000');
+```
+
+<a name="use-cases"></a>
 Use Cases
 ---------
 
-1. **Track changes in user profiles:** Use Laraversion to track changes made to user profiles in your application, allowing you to easily revert to previous versions if necessary.
-2. **Audit content updates:** Use Laraversion to audit content updates in a CMS, providing a history of changes and the ability to restore previous versions.
-3. **Monitor product updates:** Use Laraversion to monitor product updates in an e-commerce platform, ensuring you can revert to previous versions if an update causes issues.
+1. **Audit actions:** Use Laraversion to track changes made in your application, allowing you to maintain a comprehensive audit log for compliance and security purposes.
+2. **Collaborative content editing:** Use Laraversion to manage content revisions in a collaborative environment, providing a seamless way to track and revert changes made by multiple authors.
+3. **Rollback faulty updates:** Use Laraversion to quickly revert to a stable version of your data if an update causes unexpected issues, minimizing downtime and ensuring data integrity.
 
+<a name="commands"></a>
 Commands
 --------
 
@@ -140,14 +183,12 @@ Laraversion provides Artisan commands to manage the versions of your models.
 ```javascript
 php artisan laraversion list
 ```
-This command lists the latest versions of all models in your application.
 
 ### Restore a specific version of a model:
 
 ```javascript
 php artisan laraversion:restore {model} {commit_id}
 ```
-Replace `{model}` with the model class name and `{commit_id}` with the UUID of the version you want to restore.
 
 ### Compare two versions of a model:
 
@@ -167,16 +208,40 @@ Note: Make sure to replace `Post`, `123e4567-e89b-12d3-a456-426614174000`, and `
 
 You can find the UUIDs of the available versions using the `php artisan laraversion` command.
 
+<a name="configuration"></a>
 Configuration
 -------------
 
-You can configure the maximum number of versions to retain by changing the `max_versions` value in the `config/laraversion.php` configuration file.
+You can configure the maximum number of versions to retain by changing the `max_versions` value in the `config/laraversion.php` configuration file. Additionally, you can specify which model attributes to exclude from versioning by defining a `$untrackedFields` property in your model class.
 
+<a name="excluding-attributes"></a>
+### Excluding Attributes from Versioning
+
+To exclude specific attributes from versioning, define a `$untrackedFields` property in your model class:
+```php
+use Laraversion\Laraversion\Traits\Versionable;
+
+class YourModel extends Model
+{
+    use Versionable;
+
+    /**
+     * The attributes that should not be tracked by the versioning system.
+     *
+     * @var array
+     */
+    protected $untrackedFields = ['password', 'remember_token', 'email_verified_at'];
+}
+```
+In this example, the `password`, `remember_token` and `email_verified_at` attributes will not be tracked by Laraversion.
+
+<a name="contribution"></a>
 Contribution
 ------------
 
 Contributions are welcome!
 
+<a name="license"></a>
 License
 -------
 
