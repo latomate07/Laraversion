@@ -19,27 +19,47 @@ trait Versionable
      */
     public static function bootVersionable()
     {
-        static::created(function (Model $model) {
-            $model->recordVersion(VersionEventType::CREATED);
-        });
+        // Get the events to listen to for the current model
+        $listenEvents = (new static)->getListenEvents();
 
-        static::updated(function (Model $model) {
-            $model->recordVersion(VersionEventType::UPDATED);
-        });
-
-        static::deleted(function (Model $model) {
-            $model->recordVersion(VersionEventType::DELETED);
-        });
-
-        if (in_array(SoftDeletes::class, class_uses_recursive(static::class))) {
-            static::restored(function (Model $model) {
+        // Define event handlers for each event type
+        $eventHandlers = [
+            'created'   => function (Model $model) {
+                $model->recordVersion(VersionEventType::CREATED);
+            },
+            'updated'   => function (Model $model) {
+                $model->recordVersion(VersionEventType::UPDATED);
+            },
+            'deleted'   => function (Model $model) {
+                $model->recordVersion(VersionEventType::DELETED);
+            },
+            'restored'  => function (Model $model) {
                 $model->recordVersion(VersionEventType::RESTORED);
                 event(new VersionRestoredEvent($model));
-            });
-
-            static::forceDeleted(function (Model $model) {
+            },
+            'forceDeleted' => function (Model $model) {
                 $model->recordVersion(VersionEventType::FORCE_DELETED);
-            });
+            },
+        ];
+
+        foreach ($listenEvents as $event) {
+            // If the event handler is not set, skip to the next iteration
+            if (!isset($eventHandlers[$event])) {
+                continue;
+            }
+
+            $handler = $eventHandlers[$event];
+
+            // Check if the current event requires the model to use the SoftDeletes trait
+            if ($event === 'restored' || $event === 'forceDeleted') {
+                if (in_array(SoftDeletes::class, class_uses_recursive(static::class))) {
+                    // Add the event handler to the current event
+                    static::$event($handler);
+                }
+            } else {
+                // Add the event handler to the current event
+                static::$event($handler);
+            }
         }
     }
 
@@ -125,6 +145,20 @@ trait Versionable
             'event_type' => $eventType->value,
             'data' => json_encode($data),
         ];
+    }
+
+    /**
+     * Get the events to listen for versioning.
+     *
+     * @return array
+     */
+    protected function getListenEvents(): array
+    {
+        $modelClass = get_class($this);
+        $modelConfig = config("laraversion.models.{$modelClass}", []);
+        $listenEvents = array_merge(config('laraversion.listen_events', []), $modelConfig['listen_events'] ?? []);
+
+        return $listenEvents;
     }
 
     /**
