@@ -2,15 +2,15 @@
 
 namespace Laraversion\Laraversion\Traits;
 
-use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Str;
-use Laraversion\Laraversion\Enums\VersionEventType;
-use Laraversion\Laraversion\Models\VersionHistory;
-use Laraversion\Laraversion\Events\VersionCreatedEvent;
-use Laraversion\Laraversion\Events\VersionPrunedEvent;
-use Laraversion\Laraversion\Events\VersionRestoredEvent;
-use Illuminate\Database\Eloquent\Model;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Database\Eloquent\Model;
+use Laraversion\Laraversion\Models\VersionHistory;
+use Laraversion\Laraversion\Enums\VersionEventType;
+use Laraversion\Laraversion\Events\VersionPrunedEvent;
+use Laraversion\Laraversion\Events\VersionCreatedEvent;
+use Laraversion\Laraversion\Events\VersionRestoredEvent;
 
 trait Versionable
 {
@@ -144,14 +144,14 @@ trait Versionable
         if (property_exists($this, 'untrackedFields')) {
             $data = array_diff_key($data, array_flip($this->untrackedFields));
         }
-    
+
         return [
             'commit_id' => $commitId,
             'event_type' => $eventType->value,
             'data' => json_encode($data),
         ];
     }
-    
+
 
     /**
      * Get the events to listen for versioning.
@@ -223,5 +223,39 @@ trait Versionable
         }
 
         $this->revertToVersion($version->commit_id);
+    }
+
+    /**
+     * Get the differences between two versions of a model.
+     *
+     * @param string $commitId1
+     * @param string $commitId2
+     * @return array
+     */
+    public function getVersionDiff(string $commitId1, string $commitId2): array
+    {
+        $version1 = $this->versionHistory()->where('commit_id', $commitId1)->first();
+        $version2 = $this->versionHistory()->where('commit_id', $commitId2)->first();
+
+        if (!$version1 || !$version2) {
+            throw new \InvalidArgumentException("One or both versions not found.");
+        }
+
+        $data1 = json_decode($version1->data, true);
+        $data2 = json_decode($version2->data, true);
+
+        $diff = [];
+
+        foreach ($data1 as $key => $value) {
+            if (array_key_exists($key, $data2) && $data2[$key] !== $value) {
+                $diff[] = [
+                    'field_name' => $key,
+                    'old_value' => $value,
+                    'new_value' => $data2[$key],
+                ];
+            }
+        }
+
+        return $diff;
     }
 }

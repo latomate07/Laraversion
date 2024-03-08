@@ -85,6 +85,7 @@ When using the Versionable trait in your model, the following methods are availa
 3. `revertToVersion(string $commitId)`: Revert the model to a specific version.
 4. `resetToLastVersion()`: Revert the model to its last modified version.
 5. `resetToVersionAtDate(Carbon $date)`: Revert the model to the version at a specific date.
+6. `getVersionDiff(string $commitId1, string $commitId2)`: Get the differences between two versions of a model.
 
 ### <a name="listening-to-events"></a>Listening to Events
 
@@ -131,9 +132,11 @@ Then, you can use the facade's methods:
 
 1. `Laraversion::getVersionHistory(Model $model)`: Get the version history for a given model instance.
 2. `Laraversion::restoreVersion(Model $model, string $commitId)`: Restore a previous version of a given model instance.
-3. `Laraversion::getLatestVersion(Model $model)`: Get the latest version of a given model instance.
-4. `Laraversion::getAllVersions()`: Get all versions of all models.
-5. `Laraversion::getVersion(Model $model, string $commitId)`: Get a specific version of a given model instance.
+3. `Laraversion::restoreToLastVersion(Model $model)`: Revert the given model to its last modified version before current one.
+4. `Laraversion::getLatestVersion(Model $model)`: Get the latest version of a given model instance.
+5. `Laraversion::getAllVersions()`: Get all versions of all models.
+6. `Laraversion::getVersion(Model $model, string $commitId)`: Get a specific version of a given model instance.
+7. `Laraversion::getVersionDiff(Model $model, string $commitId1, string $commitId2)`: Get the differences between two versions of a given model instance.
 
 <a name="examples"></a>
 Examples
@@ -155,6 +158,8 @@ use App\Models\User;
 
 $user = User::first();
 $versionHistory = $user->versionHistory()->get();
+// or
+$versionHistory = $user->versionHistory;
 ```
 
 ### Example 2: Restore a previous version of a Post model instance using Laraversion Facade

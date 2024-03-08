@@ -86,6 +86,67 @@ class Laraversion
      */
     public static function getVersionHistoryByCommitId(string $commitId): \Illuminate\Database\Eloquent\Collection
     {
-        return VersionHistory::where('commit_id', $commitId)->get();
+        return VersionHistory::where('commit_id', $commitId)->first();
+    }
+
+    /**
+     * Get the differences between two versions of a model.
+     *
+     * @param Model $model The model instance.
+     * @param string $commitId1 The commit ID of the first version.
+     * @param string $commitId2 The commit ID of the second version.
+     *
+     * @return array The differences between the two versions.
+     *
+     * @throws \RuntimeException If one or both versions are not found.
+     */
+    public static function getVersionDiff(Model $model, string $commitId1, string $commitId2): array
+    {
+        $version1 = $model->versionHistory()->where('commit_id', $commitId1)->first();
+        $version2 = $model->versionHistory()->where('commit_id', $commitId2)->first();
+
+        if (!$version1 || !$version2) {
+            throw new \InvalidArgumentException("One or both versions not found.");
+        }
+
+        $data1 = json_decode($version1->data, true);
+        $data2 = json_decode($version2->data, true);
+
+        $diff = [];
+
+        foreach ($data1 as $key => $value) {
+            if (array_key_exists($key, $data2) && $data2[$key] !== $value) {
+                $diff[] = [
+                    'field_name' => $key,
+                    'old_value' => $value,
+                    'new_value' => $data2[$key],
+                ];
+            }
+        }
+
+        return $diff;
+    }
+
+    /**
+     * Revert the model to its last modified version.
+     *
+     * @param Model $model The model instance.
+     *
+     * @return void
+     *
+     * @throws \RuntimeException If the version history is empty.
+     */
+    public static function restoreToLastVersion(Model $model): void
+    {
+        $latestVersion = $model->versionHistory()
+            ->where('created_at', '<', $model->updated_at)
+            ->latest()
+            ->first();
+
+        if (!$latestVersion) {
+            throw new \InvalidArgumentException("No version history exists for this model.");
+        }
+
+        $model->revertToVersion($latestVersion->commit_id);
     }
 }
