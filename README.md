@@ -7,19 +7,23 @@ Table of Contents
 -----------------
 
 1. [Features](#features)
-2. [Installation](#installation)
-3. [Usage](#usage)
+2. [Requirements](#requirements)
+3. [Installation](#installation)
+4. [Usage](#usage)
     * [Using the Trait](#using-the-trait)
     * [Available Methods](#available-methods)
     * [Listening to Events](#listening-to-events)
     * [Facade Usage](#facade-usage)
     * [Examples](#examples)
-4. [Use Cases](#use-cases)
-5. [Commands](#commands)
-6. [Configuration](#configuration)
+5. [Use Cases](#use-cases)
+6. [Commands](#commands)
+    * [List all versions](#list-all-versions)
+    * [Restore a specific version](#restore-specific-version)
+    * [Compare two versions](#compare-two-versions)
+7. [Configuration](#configuration)
     * [Excluding Attributes from Versioning](#excluding-attributes)
-7. [Contribution](#contribution)
-8. [License](#license)
+8. [Contribution](#contribution)
+9. [License](#license)
 
 <a name="features"></a>
 Features
@@ -32,6 +36,13 @@ Features
 * Easy configuration of the maximum number of versions to retain.
 * Events for version creation, pruning, and restoration.
 * Ability to specify which model attributes to exclude from versioning.
+
+<a name="requirements"></a>
+Requirements
+------------
+
+* PHP ^8.1
+* Laravel ^9.0
 
 <a name="installation"></a>
 Installation
@@ -134,7 +145,7 @@ use App\Models\User;
 use Laraversion\Laraversion\Facades\Laraversion;
 
 $user = User::first();
-$versionHistory = Laraversion::getVersionHistory($user); 
+$versionHistory = Laraversion::getVersionHistory($user);
 ```
 
 ### Alternatively Get version history for a User model instance using trait methods
@@ -142,7 +153,7 @@ $versionHistory = Laraversion::getVersionHistory($user);
 ```php
 use App\Models\User;
 
-$user = User::find(1);
+$user = User::first();
 $versionHistory = $user->versionHistory()->get();
 ```
 
@@ -151,7 +162,7 @@ $versionHistory = $user->versionHistory()->get();
 use App\Models\Post;
 use Laraversion\Laraversion\Facades\Laraversion;
 
-$post = Post::first();
+$post = Post::firstWhere('slug', 'my-awesome-blog-post');
 Laraversion::restoreVersion($post, '123e4567-e89b-12d3-a456-426614174000');
 ```
 
@@ -159,7 +170,7 @@ Laraversion::restoreVersion($post, '123e4567-e89b-12d3-a456-426614174000');
 ```php
 use App\Models\Post;
 
-$post = Post::find(1);
+$post = Post::firstWhere('slug', 'my-awesome-blog-post');
 $post->revertToVersion('123e4567-e89b-12d3-a456-426614174000');
 ```
 
@@ -177,19 +188,19 @@ Commands
 
 Laraversion provides Artisan commands to manage the versions of your models.
 
-### List all versions of your app models:
+### <a name="list-all-versions"></a>List all versions of your app models:
 
 ```javascript
 php artisan laraversion list
 ```
 
-### Restore a specific version of a model:
+### <a name="restore-specific-version"></a>Restore a specific version of a model:
 
 ```javascript
 php artisan laraversion:restore {model} {commit_id}
 ```
 
-### Compare two versions of a model:
+### <a name="compare-two-versions"></a>Compare two versions of a model:
 
 ```javascript
 php artisan laraversion:compare {model} {commit_id1} {commit_id2}
@@ -211,7 +222,28 @@ You can find the UUIDs of the available versions using the `php artisan laravers
 Configuration
 -------------
 
-You can configure the maximum number of versions to retain by changing the `max_versions` value in the `config/laraversion.php` configuration file. Additionally, you can specify which model attributes to exclude from versioning by defining a `$untrackedFields` property in your model class.
+You can configure the maximum number of versions to retain and the events to listen for versioning in the `config/laraversion.php` configuration file.
+
+Here are the keys you can find in the configuration file:
+
+* `max_versions`: The maximum number of versions to keep for each model.
+* `listen_events`: The events to listen for versioning on all models.
+* `models`: The models to version and their specific configuration.
+
+For example, you can set the maximum number of versions to retain for a specific model like this:
+
+```php
+'models' => [
+    'App\Models\YourModel' => [
+        'max_versions' => 5,
+        'listen_events' => [
+            'created',
+            'updated',
+            // more events here ...
+        ],
+    ],
+],
+```
 
 <a name="excluding-attributes"></a>
 ### Excluding Attributes from Versioning
@@ -229,10 +261,10 @@ class YourModel extends Model
      *
      * @var array
      */
-    protected $untrackedFields = ['password', 'remember_token', 'email_verified_at'];
+    protected $untrackedFields = ['remember_token', 'email_verified_at'];
 }
 ```
-In this example, the `password`, `remember_token` and `email_verified_at` attributes will not be tracked by Laraversion.
+In this example, the `remember_token` and `email_verified_at` attributes will not be tracked by Laraversion.
 
 <a name="contribution"></a>
 Contribution
