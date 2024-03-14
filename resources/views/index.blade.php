@@ -117,7 +117,6 @@
             openCompareView: false,
             openRevertView: false,
             currentVersionInView: {},
-            currentVersionInViewAsJson: {},
             searchInVersionView: '',
             searchInCompareVersionView: '',
             init() {
@@ -139,8 +138,6 @@
                             this.canCompareVersion = false;
                             break;
                     }
-
-                    console.log(value);
                 });
                 this.$watch('openVersionView', (value) => {
                     if (!value) {
@@ -271,6 +268,8 @@
                 this.currentVersionInView = version;
             },
             async revertVersion() {
+                if(!confirm('Are you sure you want to revert the model to this version?')) return;
+
                 // Send a POST request to the server to revert the model to the selected version
                 try {
                     const csrfToken = "{{ csrf_token() }}";
