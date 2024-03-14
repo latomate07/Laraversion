@@ -30,6 +30,14 @@ class VersionHistory extends Model
     }
 
     /**
+     * Get and serialize data attribute.
+     */
+    public function getDataAttribute()
+    {
+        return json_decode($this->attributes['data'], true);
+    }
+
+    /**
      * Get the latest version for a given model.
      *
      * @param Model $model

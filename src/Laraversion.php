@@ -38,8 +38,10 @@ class Laraversion
             throw new \RuntimeException("Version not found for commit ID {$commitId}");
         }
 
-        $model->fill(json_decode($version->data, true));
-        $model->save();
+        $model->fill($version->data);
+        $model->withoutEvents(function() use($model) {
+            $model->save();
+        });
     }
 
     /**
@@ -109,8 +111,8 @@ class Laraversion
             throw new \InvalidArgumentException("One or both versions not found.");
         }
 
-        $data1 = json_decode($version1->data, true);
-        $data2 = json_decode($version2->data, true);
+        $data1 = is_string($version1->data) ? json_decode($version1->data, true) : $version1->data;
+        $data2 = is_string($version2->data) ? json_decode($version2->data, true) : $version2->data;
 
         $diff = [];
 

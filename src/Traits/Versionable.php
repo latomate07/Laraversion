@@ -182,11 +182,13 @@ trait Versionable
         }
 
         // Get the data from the version
-        $versionData = json_decode($version->data, true);
+        $versionData = is_string($version->data) ? json_decode($version->data, true) : $version->data;
 
         // Update the model's attributes with the version data
-        $this->fill($versionData);
-        $this->save();
+        $this->withoutEvents(function() use($versionData) {
+            $this->fill($versionData);
+            $this->save();
+        });
     }
 
     /**
@@ -241,8 +243,8 @@ trait Versionable
             throw new \InvalidArgumentException("One or both versions not found.");
         }
 
-        $data1 = json_decode($version1->data, true);
-        $data2 = json_decode($version2->data, true);
+        $data1 = is_string($version1->data) ? json_decode($version1->data, true) : $version1->data;
+        $data2 = is_string($version2->data) ? json_decode($version2->data, true) : $version2->data;
 
         $diff = [];
 

@@ -5,6 +5,7 @@ namespace Laraversion\Laraversion\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Laraversion\Laraversion\Models\VersionHistory;
+use Laraversion\Laraversion\Facades\Laraversion;
 
 class LaraversionController extends Controller
 {
@@ -15,45 +16,50 @@ class LaraversionController extends Controller
      */
     public function index()
     {
-        $versions = VersionHistory::latest()->get();
+        $versions = VersionHistory::latest()->paginate(12);
         return view('laraversion::index', [
-            'models' => $this->getModels(),
+            'models' => VersionHistory::select('versionable_type')->distinct()->get(),
             'versions' => $versions,
+            'events' => VersionHistory::select('event_type')->distinct()->get(),
         ]);
     }
 
     /**
-     * Get a list of the available models.
+     * Revert a model to a specific version.
      *
-     * @return \Illuminate\Database\Eloquent\Collection|static[]
+     * @param  Request  $request
+     * @return \Illuminate\View\View
      */
-    public function getModels()
+    public function revert(Request $request)
     {
-        $models = VersionHistory::select('versionable_type')->distinct()->get();
-        return $models;
-    }
-
-    /**
-     * Get a listing of the versions for a specific model.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function getVersions(Request $request)
-    {
-        $this->validate($request, [
-            'versionable_type' => 'required|string',
-            'event_type' => 'nullable|string',
+        /**
+         * Validate the request data.
+         */
+        $request->validate([
+            'model_id' => 'required|integer',
+            'version_id' => 'required|string',
         ]);
 
-        $query = VersionHistory::where('versionable_type', $request->versionable_type);
+        $modelId = $request->model_id;
+        $versionId = $request->version_id;
 
-        if ($request->filled('event_type')) {
-            $query->where('event_type', $request->event_type);
+        /**
+         * Find the version history instance or return a 404 error.
+         */
+        $versionHistory = VersionHistory::where('commit_id', $versionId)->firstOrFail();
+
+        if (!$versionHistory) {
+            return response()->json(['message' => 'Version not found'], 400);
         }
 
-        $versions = $query->latest()->get();
+        /**
+         * Revert the model to the specified version.
+         */
+        Laraversion::restoreVersion($versionHistory->versionable, $versionId);
 
-        return response()->json($versions);
+        /**
+         * Return a success view or redirect to a success page.
+         */
+        return response()->json(['message' => 'Model reverted successfully']);
     }
 }

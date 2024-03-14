@@ -38,7 +38,7 @@ class LaraversionCommand extends Command
             return self::FAILURE;
         }
 
-        $data = json_decode($versionHistory->data, true);
+        $data = is_string($versionHistory->data) ? json_decode($versionHistory->data, true) : $versionHistory->data;
 
         DB::transaction(function () use ($model, $data) {
             foreach ($data as $column => $value) {

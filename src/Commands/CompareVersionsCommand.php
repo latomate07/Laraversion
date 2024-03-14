@@ -47,8 +47,8 @@ class CompareVersionsCommand extends Command
             return self::FAILURE;
         }
 
-        $data1 = json_decode($versionHistory1->data, true);
-        $data2 = json_decode($versionHistory2->data, true);
+        $data1 = is_string($versionHistory1->data) ? json_decode($versionHistory1->data, true) : $versionHistory1->data;
+        $data2 = is_string($versionHistory2->data) ? json_decode($versionHistory2->data, true) : $versionHistory2->data;
 
         $diff = $this->getDiff($data1, $data2);
 
