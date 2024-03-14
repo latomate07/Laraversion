@@ -1,4 +1,5 @@
-<?php 
+<?php
+
 namespace Laraversion\Laraversion\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -10,6 +11,13 @@ class VersionHistory extends Model
     use HasFactory;
 
     protected $guarded = [];
+
+    /**
+     * The relationships that should be eager loaded by default with this model.
+     *
+     * @var array
+     */
+    protected $with = ['versionable'];
 
     /**
      * Get the versionable model.

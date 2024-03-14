@@ -22,8 +22,9 @@ Table of Contents
     * [Compare two versions](#compare-two-versions)
 7. [Configuration](#configuration)
     * [Excluding Attributes from Versioning](#excluding-attributes)
-8. [Contribution](#contribution)
-9. [License](#license)
+8. [Installing the Graphical User Interface (Optional)](#installing-gui)
+9. [Contribution](#contribution)
+10. [License](#license)
 
 <a name="features"></a>
 Features
@@ -270,6 +271,24 @@ class YourModel extends Model
 }
 ```
 In this example, the `remember_token` and `email_verified_at` attributes will not be tracked by Laraversion.
+
+<a name="installing-gui"></a>
+Installing the Graphical User Interface (Optional)
+--------------------------------------------------
+
+Laraversion offers an optional graphical user interface to manage the versions of your models. To install the graphical user interface, run the following command:
+```javascript
+php artisan laraversion:install-gui
+```
+
+Once the installation is complete, you can access the Laraversion graphical user interface by visiting the `/laraversion` route in your application. The graphical user interface provides the following features:
+
+- List all models being versioned by Laraversion.
+- View the version history of a specific model.
+- Compare two versions of a model.
+- Restore a previous version of a model.
+
+*Note: Installing the graphical user interface is optional. You can continue using Laraversion without the graphical user interface if you prefer.*
 
 <a name="contribution"></a>
 Contribution
