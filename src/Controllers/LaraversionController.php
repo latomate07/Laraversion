@@ -40,13 +40,10 @@ class LaraversionController extends Controller
             'version_id' => 'required|string',
         ]);
 
-        $modelId = $request->model_id;
-        $versionId = $request->version_id;
-
         /**
          * Find the version history instance or return a 404 error.
          */
-        $versionHistory = VersionHistory::where('commit_id', $versionId)->firstOrFail();
+        $versionHistory = VersionHistory::where('commit_id', $request->version_id)->firstOrFail();
 
         if (!$versionHistory) {
             return response()->json(['message' => 'Version not found'], 400);
@@ -55,11 +52,8 @@ class LaraversionController extends Controller
         /**
          * Revert the model to the specified version.
          */
-        Laraversion::restoreVersion($versionHistory->versionable, $versionId);
+        Laraversion::restoreVersion($versionHistory->versionable, $request->version_id);
 
-        /**
-         * Return a success view or redirect to a success page.
-         */
         return response()->json(['message' => 'Model reverted successfully']);
     }
 }
