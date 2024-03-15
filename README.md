@@ -1,4 +1,8 @@
-Laraversion
+<p align="center">
+  <img width="auto" height="300" src="art/logo.png">
+</p>
+
+About Laraversion
 ===========
 
 Laraversion is a Laravel package that simplifies version management for your Eloquent models. It allows you to easily track and restore previous versions of your data using a Git-inspired versioning system.
@@ -15,14 +19,14 @@ Table of Contents
     * [Listening to Events](#listening-to-events)
     * [Facade Usage](#facade-usage)
     * [Examples](#examples)
-5. [Use Cases](#use-cases)
+5. [Installing the Graphical User Interface (Optional)](#installing-gui)
 6. [Commands](#commands)
     * [List all versions](#list-all-versions)
     * [Restore a specific version](#restore-specific-version)
     * [Compare two versions](#compare-two-versions)
 7. [Configuration](#configuration)
     * [Excluding Attributes from Versioning](#excluding-attributes)
-8. [Installing the Graphical User Interface (Optional)](#installing-gui)
+8. [Use Cases](#use-cases)
 9. [Contribution](#contribution)
 10. [License](#license)
 
@@ -180,13 +184,45 @@ $post = Post::firstWhere('slug', 'my-awesome-blog-post');
 $post->revertToVersion('123e4567-e89b-12d3-a456-426614174000');
 ```
 
-<a name="use-cases"></a>
-Use Cases
----------
+<a name="installing-gui"></a>
+Installing the Graphical User Interface (Optional)
+--------------------------------------------------
 
-1. **Audit actions:** Use Laraversion to track changes made in your application, allowing you to maintain a comprehensive audit log for compliance and security purposes.
-2. **Collaborative content editing:** Use Laraversion to manage content revisions in a collaborative environment, providing a seamless way to track and revert changes made by multiple authors.
-3. **Rollback faulty updates:** Use Laraversion to quickly revert to a stable version of your data if an update causes unexpected issues, minimizing downtime and ensuring data integrity.
+Laraversion offers an optional graphical user interface to manage the versions of your models. To install the graphical user interface, run the following command:
+```javascript
+php artisan laraversion:install-gui
+```
+
+Once the installation is complete, you can access the Laraversion graphical user interface by visiting the `/laraversion` route in your application. The graphical user interface provides the following features:
+
+- List all models being versioned by Laraversion.
+- View the version history of a specific model.
+- Compare two versions of a model.
+- Restore a previous version of a model.
+
+<table> 
+    <tr> 
+        <td>
+            <img src="art/showcase/listing.png" alt="ModelListing_View" width="auto">
+        </td> 
+        <td>
+            <img src="art/showcase/version_details.png" alt="Image 2" width="auto">
+        </td> 
+    </tr> 
+    <tr> 
+        <td>
+            <img src="art/showcase/compare_selection.png" alt="Image 2" width="auto">
+        </td> 
+        <td>
+            <img src="art/showcase/compare_view.png" alt="Image 3" width="auto">
+        </td> 
+    </tr>
+    <tr>
+        <img src="art/showcase/revert_view.png" alt="Image 4" width="auto"> 
+    </tr>
+</table> 
+
+*Note: Installing the graphical user interface is optional. You can continue using Laraversion without the graphical user interface if you prefer.*
 
 <a name="commands"></a>
 Commands
@@ -272,23 +308,13 @@ class YourModel extends Model
 ```
 In this example, the `remember_token` and `email_verified_at` attributes will not be tracked by Laraversion.
 
-<a name="installing-gui"></a>
-Installing the Graphical User Interface (Optional)
---------------------------------------------------
+<a name="use-cases"></a>
+Use Cases
+---------
 
-Laraversion offers an optional graphical user interface to manage the versions of your models. To install the graphical user interface, run the following command:
-```javascript
-php artisan laraversion:install-gui
-```
-
-Once the installation is complete, you can access the Laraversion graphical user interface by visiting the `/laraversion` route in your application. The graphical user interface provides the following features:
-
-- List all models being versioned by Laraversion.
-- View the version history of a specific model.
-- Compare two versions of a model.
-- Restore a previous version of a model.
-
-*Note: Installing the graphical user interface is optional. You can continue using Laraversion without the graphical user interface if you prefer.*
+1. **Audit actions:** Use Laraversion to track changes made in your application, allowing you to maintain a comprehensive audit log for compliance and security purposes.
+2. **Collaborative content editing:** Use Laraversion to manage content revisions in a collaborative environment, providing a seamless way to track and revert changes made by multiple authors.
+3. **Rollback faulty updates:** Use Laraversion to quickly revert to a stable version of your data if an update causes unexpected issues, minimizing downtime and ensuring data integrity.
 
 <a name="contribution"></a>
 Contribution
